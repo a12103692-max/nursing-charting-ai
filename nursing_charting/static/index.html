@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>간호차팅 · 로컬 PoC</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+  <script src="/queue.js" defer></script>
+</head>
+<body>
+  <main>
+    <header><div><p class="eyebrow">NURSING CHARTING / LOCAL</p><h1>말로 남긴 관찰을, 간호기록으로.</h1><p class="subtitle">초안을 확인하고 다듬은 뒤, 승인한 기록만 Gold로 남기세요.</p></div><div class="counter">현재 Gold<strong id="count">—</strong><span>건</span></div></header>
+    <aside class="notice"><strong>합성 데이터 전용</strong><span>실제 환자정보를 입력하지 마세요. EMR과 연결되지 않은 로컬 테스트입니다.</span></aside>
+    <div id="message" role="status" aria-live="polite"></div>
+    <details id="queue-panel" class="card queue-panel"><summary>합성 자연어 자동 생성 · 검토 대기열</summary>
+      <p class="hint">합성 중환자·심혈관 상황을 AI로 생성하고 순차 차팅합니다. 기대 정답이나 자동 채점은 만들지 않습니다.</p>
+      <form id="queue-form" class="queue-settings">
+        <label>생성 건수<input id="queue-count" type="number" min="1" max="50" value="20" required></label>
+        <label>이 배치 API 호출 한도<input id="queue-limit" type="number" min="1" max="101" value="21" required></label>
+        <label class="check"><input id="queue-cost" type="checkbox" required><span>합성 전용이며 API 비용이 발생할 수 있음을 확인했습니다.</span></label>
+        <button id="queue-start" class="primary" type="submit">합성 입력 생성·차팅 시작</button>
+      </form>
+      <p class="hint">기본 20건: 입력 생성 1회 + 차팅 최대 20회. 중복 제거로 건수가 줄 수 있습니다. 한도는 실패·결과 미확인 예약도 포함하며 이 배치에만 적용됩니다. 재생성은 직접 눌러야 실행됩니다.</p>
+      <label for="queue-jobs">저장된 검토 대기열</label><select id="queue-jobs"><option value="">대기열 없음</option></select>
+      <div class="actions queue-controls"><button id="queue-pause" type="button" class="secondary" disabled>중단</button><button id="queue-resume" type="button" class="secondary" disabled>한도 적용·재개</button></div>
+      <p id="queue-progress" role="status" aria-live="polite">실행 버튼을 누르기 전에는 API를 호출하지 않습니다.</p>
+      <progress id="queue-progress-bar" max="20" value="0" aria-label="자동 차팅 진행률"></progress>
+      <p id="queue-usage" class="hint"></p><p id="queue-error" class="error" role="status"></p>
+      <ol id="queue-items" class="queue-items"></ol>
+      <details><summary>API 호출 기록</summary><ul id="queue-calls"></ul></details>
+    </details>
+    <div class="workspace">
+      <section class="card"><div class="section-heading"><span class="number">01</span><div><h2>관찰을 입력하세요</h2><p>평소 사용하는 자연어로 관찰한 내용을 적어주세요.</p></div></div>
+        <form id="draft-form">
+          <label for="input">자연어 입력</label><textarea id="input" rows="7" maxlength="12000" required placeholder="예: 체온 36.8도 측정함. 통증 없다고 말함."></textarea>
+          <label class="check"><input id="synthetic" type="checkbox" required><span>실제 환자정보가 없는 합성 입력입니다.</span></label>
+          <button id="generate" type="submit" class="primary">간호기록 생성 <span aria-hidden="true">↗</span></button>
+          <p class="hint">Exact → Learned → Luna 순서로 처리합니다. Luna 호출에는 API 사용료가 발생할 수 있습니다.</p>
+        </form>
+      </section>
+      <section class="card"><div class="section-heading"><span class="number">02</span><div><h2>검토하고 승인하세요</h2><p>원문 그대로 승인하거나 직접 수정할 수 있습니다.</p></div></div>
+        <div class="result-meta" aria-live="polite"><div><span>처리 경로</span><strong id="route" class="badge">초안 대기</strong></div><div><span>기록 분류</span><strong id="classification" class="badge">분류 대기</strong></div></div>
+        <p id="classification-help" class="classification-help" hidden></p>
+        <label for="records">간호기록 편집</label><textarea id="records" rows="7" disabled placeholder="생성된 초안이 여기에 표시됩니다."></textarea>
+        <div id="checks" class="checks" hidden><h3>확인이 필요한 사항</h3><ul id="uncertainties"></ul></div>
+        <div id="workflow-checks" class="checks" hidden><h3>분류 및 Set 복원 주의</h3><ul id="workflow-notices"></ul></div>
+        <details id="gold-diagnostics" hidden><summary>개발·Gold 관리 진단</summary><pre id="diagnostic-data"></pre></details>
+        <details id="details" hidden><summary>처리 안내와 미기록 사항</summary><p id="reason"></p><ul id="omissions"></ul></details>
+        <label for="reviewer">승인자 이름</label><input id="reviewer" type="text" maxlength="120" autocomplete="off" placeholder="기록을 검토한 승인자" disabled>
+        <label for="notes">검토 메모 <span class="optional">선택</span></label><input id="notes" type="text" maxlength="4000" placeholder="단위·약어 등의 확인 결과" disabled>
+        <label class="check"><input id="approved" type="checkbox" disabled><span>기록과 확인 사항을 검토했고, 이 기록의 Gold 저장을 승인합니다.</span></label>
+        <div id="queue-review-actions" hidden><p class="hint">대기열 원문은 유지합니다. 이동 전 수정 임시저장으로 편집 내용을 보존하세요. 재생성 시 이전 초안도 파일에 보존합니다.</p><div class="actions"><button id="queue-edit" type="button" class="secondary">수정 임시저장</button><button id="queue-hold" type="button" class="secondary">보류</button><button id="queue-skip" type="button" class="secondary">건너뛰기</button><button id="queue-regenerate" type="button" class="secondary">초안 재생성</button></div></div>
+        <div class="actions"><button id="save" type="button" class="primary" disabled>Gold 승인·저장</button><button id="new" type="button" class="secondary">새 입력 시작</button></div>
+        <p class="hint">승인 버튼을 누르기 전에는 Gold에 저장되지 않습니다. 최종 임상적 적절성은 사용자가 확인해야 합니다.</p>
+      </section>
+    </div>
+    <footer>내 PC에서 실행 · 승인된 Set의 정확 입력을 초안으로 재현 · 생략된 임상 사실은 확인 후 승인</footer>
+  </main>
+</body>
+</html>

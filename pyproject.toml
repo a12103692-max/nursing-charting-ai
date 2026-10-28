@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nursing-charting-poc"
+version = "0.1.0"
+description = "Conservative, Gold-first nursing charting experiment"
+requires-python = ">=3.12"
+dependencies = []
+
+[project.scripts]
+nursing-charting = "nursing_charting.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["nursing_charting*"]
+
+[tool.setuptools.package-data]
+nursing_charting = ["static/*.html", "static/*.css", "static/*.js"]

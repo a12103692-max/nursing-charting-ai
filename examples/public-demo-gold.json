@@ -1,0 +1,39 @@
+{
+  "format": "nursing-charting-synthetic-gold-v1",
+  "created_at_utc": "2026-10-28T10:07:05.927712+00:00",
+  "notice": "Three newly written synthetic illustrative examples, not clinician-validated ground truth.",
+  "count": 3,
+  "sha256": "a0e3bd17c4c694f5ea85745685f36e0830384e1fe0760adaa6b97042419b2e31",
+  "rows": [
+    {
+      "id": "PUBLIC-DEMO-001",
+      "synthetic": true,
+      "input": "체온 36.8도 측정함. 통증 없다고 말함.",
+      "context": "",
+      "records": [
+        "BT 36.8℃ 측정됨. 통증 없다고 진술함."
+      ],
+      "source": "gold"
+    },
+    {
+      "id": "PUBLIC-DEMO-002",
+      "synthetic": true,
+      "input": "의식 명료함. 사람 장소 시간 지남력 있음.",
+      "context": "",
+      "records": [
+        "의식 명료하며 사람·장소·시간에 대한 지남력 있음."
+      ],
+      "source": "gold"
+    },
+    {
+      "id": "PUBLIC-DEMO-003",
+      "synthetic": true,
+      "input": "SpO2 97% 확인함. 호흡곤란 호소 없음.",
+      "context": "",
+      "records": [
+        "SpO₂ 97%로 확인됨. 호흡곤란 호소 없음."
+      ],
+      "source": "gold"
+    }
+  ]
+}
